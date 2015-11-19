@@ -59,6 +59,9 @@ public class Configure {
 
 	//7) 统计上报API
 	public static String REPORT_API = "https://api.mch.weixin.qq.com/payitil/report";
+	
+	//8) 授权码查询OPENID接口
+    public static String QUERY_OPENID = "https://api.mch.weixin.qq.com/tools/authcodetoopenid";
 
 	public static boolean isUseThreadToDoReport() {
 		return useThreadToDoReport;

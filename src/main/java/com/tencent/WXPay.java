@@ -1,6 +1,7 @@
 package com.tencent;
 
 import com.tencent.business.DownloadBillBusiness;
+import com.tencent.business.QueryOpenIdBusiness;
 import com.tencent.business.RefundBusiness;
 import com.tencent.business.RefundQueryBusiness;
 import com.tencent.business.ScanPayBusiness;
@@ -11,6 +12,8 @@ import com.tencent.protocol.pay_query_protocol.ScanPayQueryReqData;
 import com.tencent.protocol.refund_protocol.RefundReqData;
 import com.tencent.protocol.refund_query_protocol.RefundQueryReqData;
 import com.tencent.protocol.reverse_protocol.ReverseReqData;
+import com.tencent.protocol.tool_protocol.QueryOpenIdReqData;
+import com.tencent.protocol.tool_protocol.QueryOpenIdResData;
 import com.tencent.service.*;
 
 /**
@@ -137,5 +140,15 @@ public class WXPay {
         new DownloadBillBusiness().run(downloadBillReqData,resultListener);
     }
 
+    /**
+     * 根据授权支付码, 查询对应的openId<p/>
+     * API说明地址: https://pay.weixin.qq.com/wiki/doc/api/micropay.php?chapter=9_13&index=9
+     * @param req 请求对象,
+     * @return 响应数据
+     */
+    public static QueryOpenIdResData queryOpenId(QueryOpenIdReqData req) {
+        QueryOpenIdResData respData = new QueryOpenIdBusiness().request(req);
+        return respData;
+    }
 
 }
