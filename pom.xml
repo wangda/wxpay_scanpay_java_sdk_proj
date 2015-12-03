@@ -6,7 +6,7 @@
 
     <groupId>com.tencent</groupId>
     <artifactId>wxpay-scanpay-java-sdk</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <packaging>jar</packaging>
 
     <!--
@@ -43,79 +43,90 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.8.2</version>
-            <scope>provided</scope>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
             <version>1.6</version>
-            <scope>provided</scope>
+            <!-- <scope>runtime</scope> -->
         </dependency>
         <dependency>
             <groupId>commons-logging</groupId>
             <artifactId>commons-logging</artifactId>
             <version>1.1.3</version>
-            <scope>provided</scope>
+            <!-- <scope>runtime</scope> -->
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>fluent-hc</artifactId>
             <version>4.3.5</version>
-            <scope>provided</scope>
+            <!-- <scope>runtime</scope> -->
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>4.3.5</version>
-            <scope>provided</scope>
+            <!-- <scope>provided</scope> -->
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient-cache</artifactId>
             <version>4.3.5</version>
-            <scope>provided</scope>
+            <!-- <scope>runtime</scope> -->
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpcore</artifactId>
-            <version>4.3.2</version>
-            <scope>provided</scope>
+            <version>4.4.4</version>
+           <!--  <scope>runtime</scope> -->
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpmime</artifactId>
             <version>4.3.5</version>
-            <scope>provided</scope>
+            <!-- <scope>runtime</scope> -->
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.7.7</version>
-            <scope>provided</scope>
+            <!-- <scope>runtime</scope> -->
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>1.7.7</version>
-            <scope>provided</scope>
+            <!-- <scope>runtime</scope> -->
         </dependency>
         <dependency>
             <groupId>xmlpull</groupId>
             <artifactId>xmlpull</artifactId>
             <version>1.1.3.1</version>
-            <scope>provided</scope>
+            <!-- <scope>runtime</scope> -->
         </dependency>
         <dependency>
             <groupId>xpp3</groupId>
             <artifactId>xpp3</artifactId>
             <version>1.1.4c</version>
-            <scope>provided</scope>
+            <!-- <scope>runtime</scope> -->
         </dependency>
         <dependency>
             <groupId>com.thoughtworks.xstream</groupId>
             <artifactId>xstream</artifactId>
             <version>1.4.7</version>
-            <scope>provided</scope>
+            <!-- <scope>runtime</scope> -->
         </dependency>
     </dependencies>
+    <build>
+    <plugins>
+       <plugin>
+           <artifactId>maven-compiler-plugin</artifactId>
+           <configuration>
+               <source>1.8</source>
+               <target>1.8</target>
+           </configuration>
+       </plugin>
+    </plugins>
+    </build>
 </project>

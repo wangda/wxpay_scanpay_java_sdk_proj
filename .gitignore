@@ -26,7 +26,8 @@ $RECYCLE.BIN/
 .LSOverride
 
 # Icon must end with two \r
-Icon
+Icon
+
 
 # Thumbnails
 ._*
@@ -45,4 +46,7 @@ Temporary Items
 *.svn-base
 .svn
 .svn/wc.db
-.svn/wc.db
+/target/
+/.settings/
+/.classpath
+/.project
