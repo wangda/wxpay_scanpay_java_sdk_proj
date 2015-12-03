@@ -33,6 +33,8 @@ public class ScanPayResData {
     private String total_fee = "";
     private String coupon_fee = "";
     private String fee_type = "";
+    private String cash_fee_type = "";
+    private String cash_fee = "";
     private String transaction_id = "";
     private String out_trade_no = "";
     private String attach = "";
@@ -204,6 +206,22 @@ public class ScanPayResData {
 
     public void setTime_end(String time_end) {
         this.time_end = time_end;
+    }
+
+    public String getCash_fee_type() {
+        return cash_fee_type;
+    }
+
+    public void setCash_fee_type(String cash_fee_type) {
+        this.cash_fee_type = cash_fee_type;
+    }
+
+    public String getCash_fee() {
+        return cash_fee;
+    }
+
+    public void setCash_fee(String cash_fee) {
+        this.cash_fee = cash_fee;
     }
 
 }
