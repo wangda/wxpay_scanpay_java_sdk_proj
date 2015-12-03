@@ -143,7 +143,7 @@ public class WXPay {
     /**
      * 根据授权支付码, 查询对应的openId<p/>
      * API说明地址: https://pay.weixin.qq.com/wiki/doc/api/micropay.php?chapter=9_13&index=9
-     * @param req 请求对象,
+     * @param req 请求对象
      * @return 响应数据
      */
     public static QueryOpenIdResData queryOpenId(QueryOpenIdReqData req) {
