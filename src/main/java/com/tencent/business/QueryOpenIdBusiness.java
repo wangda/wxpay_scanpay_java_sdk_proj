@@ -38,6 +38,9 @@ public class QueryOpenIdBusiness {
             log.e(e.toString());
             return null;
         }
+        if (resp == null || resp.equals("")) {
+            return null;
+        }
         QueryOpenIdResData respData = (QueryOpenIdResData) Util.getObjectFromXML(resp, QueryOpenIdResData.class);
         return respData;
     }
