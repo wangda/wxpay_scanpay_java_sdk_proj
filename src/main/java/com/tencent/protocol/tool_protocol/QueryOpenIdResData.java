@@ -1,8 +1,3 @@
-/**
- * QueryOpenIdResData.java
- * 2015年11月19日
- * ©2015 北京特微智能科技有限公司. All rights reserved.
- */
 package com.tencent.protocol.tool_protocol;
 
 /**
