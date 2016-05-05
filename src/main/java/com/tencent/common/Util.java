@@ -74,7 +74,7 @@ public class Util {
     }
 
     public static String getStringFromMap(Map<String, Object> map, String key, String defaultValue) {
-        if (key == "" || key == null) {
+        if (key == null || "".equals(key)) {
             return defaultValue;
         }
         String result = (String) map.get(key);
@@ -86,7 +86,7 @@ public class Util {
     }
 
     public static int getIntFromMap(Map<String, Object> map, String key) {
-        if (key == "" || key == null) {
+        if ("".equals(key) || key == null) {
             return 0;
         }
         if (map.get(key) == null) {
