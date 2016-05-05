@@ -76,7 +76,8 @@ public class DownloadBillBusiness {
         long totalTimeCost = costTimeEnd - costTimeStart;
         log.i("api请求总耗时：" + totalTimeCost + "ms");
 
-        log.i(downloadBillServiceResponseString);
+        // 返回账单内容太大，不用打印
+        // log.i(downloadBillServiceResponseString);
 
         DownloadBillResData downloadBillResData;
 
