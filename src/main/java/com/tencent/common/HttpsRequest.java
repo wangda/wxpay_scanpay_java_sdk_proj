@@ -109,8 +109,24 @@ public class HttpsRequest implements IServiceRequest{
      * @throws NoSuchAlgorithmException
      * @throws KeyManagementException
      */
-
     public String sendPost(String url, Object xmlObj) throws IOException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyManagementException {
+        return sendPost(url, xmlObj, false);
+    }
+    
+    /**
+     * 通过Https往API post xml数据
+     *
+     * @param url    API地址
+     * @param xmlObj 要提交的XML数据对象
+     * @param useAlias 是否使用别名来生成XML
+     * @return API回包的实际数据
+     * @throws IOException
+     * @throws KeyStoreException
+     * @throws UnrecoverableKeyException
+     * @throws NoSuchAlgorithmException
+     * @throws KeyManagementException
+     */
+    public String sendPost(String url, Object xmlObj, boolean useAlias) throws IOException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyManagementException {
 
         if (!hasInit) {
             init();
@@ -122,7 +138,9 @@ public class HttpsRequest implements IServiceRequest{
 
         //解决XStream对出现双下划线的bug
         XStream xStreamForRequestPostData = new XStream(new DomDriver("UTF-8", new XmlFriendlyNameCoder("-_", "_")));
-
+        if (useAlias) {
+            xStreamForRequestPostData.processAnnotations(xmlObj.getClass());
+        }
         //将要提交给API的数据对象转换成XML格式数据Post给API
         String postDataXML = xStreamForRequestPostData.toXML(xmlObj);
 

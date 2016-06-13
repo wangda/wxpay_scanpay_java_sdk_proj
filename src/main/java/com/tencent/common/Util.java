@@ -1,12 +1,15 @@
 package com.tencent.common;
 
 import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -66,8 +69,15 @@ public class Util {
     }
 
     public static Object getObjectFromXML(String xml, Class tClass) {
+        return getObjectFromXML(xml, tClass, false);
+    }
+    
+    public static Object getObjectFromXML(String xml, Class tClass, boolean useAlias) {
         //将从API返回的XML数据映射到Java对象
         XStream xStreamForResponseData = new XStream();
+        if (useAlias) {
+            xStreamForResponseData.processAnnotations(tClass);
+        }
         xStreamForResponseData.alias("xml", tClass);
         xStreamForResponseData.ignoreUnknownElements();//暂时忽略掉一些新增的字段
         return xStreamForResponseData.fromXML(xml);
@@ -113,6 +123,38 @@ public class Util {
      */
     public static String getLocalXMLString(String localPath) throws IOException {
         return Util.inputStreamToString(Util.class.getResourceAsStream(localPath));
+    }
+    
+    /**
+     * 将一个对象的属性转到一个Map对象中
+     * @param obj
+     * @return
+     */
+    public static Map<String, Object> toMap(Object obj) {
+        Map<String,Object> map = new HashMap<String, Object>();
+        Field[] fields = obj.getClass().getDeclaredFields();
+        for (Field field : fields) {
+            Object o;
+            try {
+                if (!field.isAccessible()) {
+                    field.setAccessible(true);
+                }
+                o = field.get(obj);
+                if (o == null) {
+                    continue;
+                }
+                
+                XStreamAlias alias = field.getDeclaredAnnotation(XStreamAlias.class);
+                if (alias == null) {
+                    map.put(field.getName(), o);
+                } else {
+                    map.put(alias.value(), o);
+                }
+            } catch (IllegalArgumentException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+        return map;
     }
 
 }

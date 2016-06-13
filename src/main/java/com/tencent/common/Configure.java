@@ -11,7 +11,7 @@ public class Configure {
 	//sdk的版本号
 	private static final String sdkVersion = "java sdk 1.0.1";
 
-//这个就是自己要保管好的私有Key了（切记只能放在自己的后台代码里，不能放在任何可能被看到源代码的客户端程序中）
+	//这个就是自己要保管好的私有Key了（切记只能放在自己的后台代码里，不能放在任何可能被看到源代码的客户端程序中）
 	// 每次自己Post数据给API的时候都要用这个key来对所有字段进行签名，生成的签名会放在Sign这个字段，API收到Post数据的时候也会用同样的签名算法对Post过来的数据进行签名和验证
 	// 收到API的返回的时候也要用这个key来对返回的数据算下签名，跟API的Sign数据进行比较，如果值不一致，有可能数据被第三方给篡改
 
@@ -62,6 +62,18 @@ public class Configure {
 	
 	//8) 授权码查询OPENID接口
     public static String QUERY_OPENID = "https://api.mch.weixin.qq.com/tools/authcodetoopenid";
+    
+    //9) 企业付款API
+    public static String TRANSFERS_API = "https://api.mch.weixin.qq.com/mmpaymkttransfers/promotion/transfers";
+    
+    //10) 查询企业付款结果API
+    public static String QUERY_TRANSFERS_API = "https://api.mch.weixin.qq.com/mmpaymkttransfers/gettransferinfo";
+    
+    //11) 现金红包接口
+    public static String REDPACK_API = "https://api.mch.weixin.qq.com/mmpaymkttransfers/sendredpack";
+    
+    //12) 红包查询接口
+    public static String QUERY_REDPACK_API = "https://api.mch.weixin.qq.com/mmpaymkttransfers/gethbinfo";
 
 	public static boolean isUseThreadToDoReport() {
 		return useThreadToDoReport;

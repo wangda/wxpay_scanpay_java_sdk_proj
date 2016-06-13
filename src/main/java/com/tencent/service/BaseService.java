@@ -29,7 +29,11 @@ public class BaseService{
     }
 
     protected String sendPost(Object xmlObj) throws UnrecoverableKeyException, IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-        return serviceRequest.sendPost(apiURL,xmlObj);
+        return serviceRequest.sendPost(apiURL, xmlObj, false);
+    }
+    
+    protected String sendPost(Object xmlObj, boolean useAlias) throws UnrecoverableKeyException, IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+        return serviceRequest.sendPost(apiURL,xmlObj, useAlias);
     }
 
     /**
