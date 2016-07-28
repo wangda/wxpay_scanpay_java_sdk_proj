@@ -6,10 +6,12 @@
 package com.tencent.protocol.mmpaymkttransfers;
 
 import com.tencent.common.Configure;
+import com.tencent.common.PayAccount;
 import com.tencent.common.RandomStringGenerator;
 import com.tencent.common.Signature;
 import com.tencent.common.Util;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
 /**
  * 查询企业发红包信息的请求对象
@@ -41,6 +43,9 @@ public class QueryRedpackReqData {
     /** MCHT:通过商户订单号获取红包信息 */
     @XStreamAlias("bill_type")
     private String billType = "MCHT";
+    
+    @XStreamOmitField
+    private PayAccount account;
 
     /**
      * 构造函数
@@ -52,6 +57,21 @@ public class QueryRedpackReqData {
         this.nonceStr = RandomStringGenerator.getRandomStringByLength(32);
         this.mchid = Configure.getMchid();
         this.appid = Configure.getAppid();
+        String sign = Signature.getSign(Util.toMap(this));
+        this.sign = sign;
+    }
+    
+    /**
+     * 构造函数
+     * @param mchBillno 商户订单号（每个订单号必须唯一）
+     */
+    public QueryRedpackReqData(PayAccount account, String mchBillno) {
+        this.account = account;
+        this.mchBillno = mchBillno;
+        
+        this.nonceStr = RandomStringGenerator.getRandomStringByLength(32);
+        this.mchid = account.getMchId();
+        this.appid = account.getAppId();
         String sign = Signature.getSign(Util.toMap(this));
         this.sign = sign;
     }
@@ -102,6 +122,14 @@ public class QueryRedpackReqData {
 
     public void setBillType(String billType) {
         this.billType = billType;
+    }
+
+    public PayAccount getAccount() {
+        return account;
+    }
+
+    public void setAccount(PayAccount account) {
+        this.account = account;
     }
 
 }

@@ -1,12 +1,10 @@
 package com.tencent.protocol.reverse_protocol;
 
 import com.tencent.common.Configure;
+import com.tencent.common.PayAccount;
 import com.tencent.common.RandomStringGenerator;
 import com.tencent.common.Signature;
-
-import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.Map;
+import com.tencent.common.Util;
 
 /**
  * User: rizenguo
@@ -22,6 +20,8 @@ public class ReverseReqData {
     private String nonce_str = "";
     private String sign = "";
     private String sdk_version = "";
+
+    private PayAccount account;
 
     /**
      * 请求撤销服务
@@ -55,7 +55,36 @@ public class ReverseReqData {
         setNonce_str(RandomStringGenerator.getRandomStringByLength(32));
 
         //根据API给的签名规则进行签名
-        String sign = Signature.getSign(toMap());
+        String sign = Signature.getSign(Util.toMap(this));
+        setSign(sign);//把签名数据设置到Sign这个属性中
+
+    }
+    
+    public ReverseReqData(PayAccount account, String transactionID,String outTradeNo){
+
+        //--------------------------------------------------------------------
+        //以下是测试数据，请商户按照自己的实际情况填写具体的值进去
+        //--------------------------------------------------------------------
+        this.setAccount(account);
+        setSdk_version(Configure.getSdkVersion());
+
+        //微信分配的公众号ID（开通公众号之后可以获取到）
+        setAppid(account.getAppId());
+
+        //微信支付分配的商户号ID（开通公众号的微信支付功能之后可以获取到）
+        setMch_id(account.getMchId());
+
+        //transaction_id是微信系统为每一笔支付交易分配的订单号，通过这个订单号可以标识这笔交易，它由支付订单API支付成功时返回的数据里面获取到。
+        setTransaction_id(transactionID);
+
+        //商户系统自己生成的唯一的订单号
+        setOut_trade_no(outTradeNo);
+
+        //随机字符串，不长于32 位
+        setNonce_str(RandomStringGenerator.getRandomStringByLength(32));
+
+        //根据API给的签名规则进行签名
+        String sign = Signature.getSign(Util.toMap(this));
         setSign(sign);//把签名数据设置到Sign这个属性中
 
     }
@@ -116,24 +145,12 @@ public class ReverseReqData {
         this.sdk_version = sdk_version;
     }
 
+    public PayAccount getAccount() {
+        return account;
+    }
 
-    public Map<String,Object> toMap(){
-        Map<String,Object> map = new HashMap<String, Object>();
-        Field[] fields = this.getClass().getDeclaredFields();
-        for (Field field : fields) {
-            Object obj;
-            try {
-                obj = field.get(this);
-                if(obj!=null){
-                    map.put(field.getName(), obj);
-                }
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        }
-        return map;
+    public void setAccount(PayAccount account) {
+        this.account = account;
     }
 
 }

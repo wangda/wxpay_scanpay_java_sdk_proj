@@ -1,8 +1,10 @@
 package com.tencent.protocol.downloadbill_protocol;
 
 import com.tencent.common.Configure;
+import com.tencent.common.PayAccount;
 import com.tencent.common.RandomStringGenerator;
 import com.tencent.common.Signature;
+import com.tencent.common.Util;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -23,6 +25,8 @@ public class DownloadBillReqData {
     private String bill_date = "";
     private String bill_type = "";
     private String sdk_version = "";
+    
+    private PayAccount account;
 
     /**
      * 请求对账单下载服务
@@ -56,10 +60,34 @@ public class DownloadBillReqData {
         setNonce_str(RandomStringGenerator.getRandomStringByLength(32));
 
         //根据API给的签名规则进行签名
-        String sign = Signature.getSign(toMap());
+        String sign = Signature.getSign(Util.toMap(this));
         setSign(sign);//把签名数据设置到Sign这个属性中
+    }
+    
+    public DownloadBillReqData(PayAccount account, String deviceInfo,String billDate,String billType){
+        this.setAccount(account);
+        setSdk_version(Configure.getSdkVersion());
+
+        //微信分配的公众号ID（开通公众号之后可以获取到）
+        setAppid(account.getAppId());
+
+        //微信支付分配的商户号ID（开通公众号的微信支付功能之后可以获取到）
+        setMch_id(account.getMchId());
+
+        //商户自己定义的扫码支付终端设备号，方便追溯这笔交易发生在哪台终端设备上
+        setDevice_info(deviceInfo);
+
+        setBill_date(billDate);
+
+        setBill_type(billType);
 
 
+        //随机字符串，不长于32 位
+        setNonce_str(RandomStringGenerator.getRandomStringByLength(32));
+
+        //根据API给的签名规则进行签名
+        String sign = Signature.getSign(Util.toMap(this));
+        setSign(sign);//把签名数据设置到Sign这个属性中
     }
 
     public String getAppid() {
@@ -126,23 +154,12 @@ public class DownloadBillReqData {
         this.sdk_version = sdk_version;
     }
 
-    public Map<String,Object> toMap(){
-        Map<String,Object> map = new HashMap<String, Object>();
-        Field[] fields = this.getClass().getDeclaredFields();
-        for (Field field : fields) {
-            Object obj;
-            try {
-                obj = field.get(this);
-                if(obj!=null){
-                    map.put(field.getName(), obj);
-                }
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        }
-        return map;
+    public PayAccount getAccount() {
+        return account;
+    }
+
+    public void setAccount(PayAccount account) {
+        this.account = account;
     }
 
 }

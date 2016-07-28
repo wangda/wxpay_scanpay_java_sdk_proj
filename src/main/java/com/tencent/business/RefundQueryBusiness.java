@@ -170,12 +170,9 @@ public class RefundQueryBusiness {
         int count = 1;
         for(RefundOrderData refundOrderData : refundOrderList){
             Util.log("退款订单数据NO" + count + ":");
-            Util.log(refundOrderData.toMap());
-            orderListResult += refundOrderData.toMap().toString();
+            Util.log(Util.toMap(refundOrderData));
             count++;
         }
-        log.i("查询到的结果如下：");
-        log.i(orderListResult);
     }
 
     public void setRefundQueryService(RefundQueryService service) {

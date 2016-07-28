@@ -6,8 +6,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.tencent.common.Configure;
+import com.tencent.common.PayAccount;
 import com.tencent.common.RandomStringGenerator;
 import com.tencent.common.Signature;
+import com.tencent.common.Util;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
 /**
  * 授权码查询OPENID接口
@@ -24,6 +27,8 @@ public class QueryOpenIdReqData {
     private String nonce_str;
     /** 签名 */
     private String sign;
+
+    private PayAccount account;
     
     public QueryOpenIdReqData(String authCode) {
         // 授权码
@@ -39,27 +44,27 @@ public class QueryOpenIdReqData {
         setNonce_str(RandomStringGenerator.getRandomStringByLength(32));
 
         //根据API给的签名规则进行签名
-        String sign = Signature.getSign(toMap());
+        String sign = Signature.getSign(Util.toMap(this));
         setSign(sign);//把签名数据设置到Sign这个属性中
     }
     
-    public Map<String,Object> toMap(){
-        Map<String,Object> map = new HashMap<String, Object>();
-        Field[] fields = this.getClass().getDeclaredFields();
-        for (Field field : fields) {
-            Object obj;
-            try {
-                obj = field.get(this);
-                if(obj!=null){
-                    map.put(field.getName(), obj);
-                }
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        }
-        return map;
+    public QueryOpenIdReqData(PayAccount account, String authCode) {
+        this.setAccount(account);
+        // 授权码
+        setAuth_code(authCode);
+        
+        //微信分配的公众号ID（开通公众号之后可以获取到）
+        setAppid(account.getAppId());
+
+        //微信支付分配的商户号ID（开通公众号的微信支付功能之后可以获取到）
+        setMch_id(account.getMchId());
+
+        //随机字符串，不长于32 位
+        setNonce_str(RandomStringGenerator.getRandomStringByLength(32));
+
+        //根据API给的签名规则进行签名
+        String sign = Signature.getSign(Util.toMap(this));
+        setSign(sign);//把签名数据设置到Sign这个属性中
     }
 
     public String getAppid() {
@@ -99,5 +104,13 @@ public class QueryOpenIdReqData {
     }
     public void setSign(String sign) {
         this.sign = sign;
+    }
+
+    public PayAccount getAccount() {
+        return account;
+    }
+
+    public void setAccount(PayAccount account) {
+        this.account = account;
     }
 }

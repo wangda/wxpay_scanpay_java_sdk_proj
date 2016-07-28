@@ -6,11 +6,13 @@
 package com.tencent.protocol.mmpaymkttransfers;
 
 import com.tencent.common.Configure;
+import com.tencent.common.PayAccount;
 import com.tencent.common.RandomStringGenerator;
 import com.tencent.common.Signature;
 import com.tencent.common.Util;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.io.xml.XmlFriendlyNameCoder;
 
@@ -57,6 +59,9 @@ public class TransfersReqData {
     
     @XStreamAlias("spbill_create_ip")
     private String spbillCreateIp;
+
+    @XStreamOmitField
+    private PayAccount account;
     
     
     /**
@@ -104,6 +109,42 @@ public class TransfersReqData {
 
     }
     
+    public TransfersReqData(PayAccount account, 
+            String deviceInfo, 
+            String partnerTradeNo,
+            String openid, 
+            String checkName, 
+            String reUserName, 
+            int amount, 
+            String desc, 
+            String spBillCreateIP){
+        this.account = account;
+        setOpenid(openid);
+        setCheckName(checkName);
+        setAmount(amount);
+        setDesc(desc);
+        setPartnerTradeNo(partnerTradeNo);
+        
+        //微信分配的公众号ID（开通公众号之后可以获取到）
+        setAppid(account.getAppId());
+
+        //微信支付分配的商户号ID（开通公众号的微信支付功能之后可以获取到）
+        setMchid(account.getMchId());
+
+        //商户自己定义的扫码支付终端设备号，方便追溯这笔交易发生在哪台终端设备上
+        setDeviceInfo(deviceInfo);
+
+        //订单生成的机器IP
+        setSpbillCreateIp(spBillCreateIP);
+
+        //随机字符串，不长于32 位
+        setNonceStr(RandomStringGenerator.getRandomStringByLength(32));
+
+        //根据API给的签名规则进行签名
+        String sign = Signature.getSign(Util.toMap(this));
+        setSign(sign);//把签名数据设置到Sign这个属性中
+
+    }
 
     public String getAppid() {
         return appid;
@@ -210,6 +251,14 @@ public class TransfersReqData {
         xstream.processAnnotations(TransfersReqData.class);
         String xml = xstream.toXML(req);
         System.out.println(xml);
+    }
+
+    public PayAccount getAccount() {
+        return account;
+    }
+
+    public void setAccount(PayAccount account) {
+        this.account = account;
     }
     
     

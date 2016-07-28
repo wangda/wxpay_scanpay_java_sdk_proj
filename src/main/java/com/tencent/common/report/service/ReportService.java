@@ -28,7 +28,7 @@ public class ReportService {
         reqData = reportReqData;
     }
 
-    public String request() throws UnrecoverableKeyException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    public String request() throws Exception {
         String responseString = new HttpsRequest().sendPost(Configure.REPORT_API, reqData);
 
         Util.log("   report返回的数据：" + responseString);

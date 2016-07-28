@@ -1,11 +1,13 @@
 package com.tencent.common;
 
+import com.tencent.common.httpclientcache.HttpClientCache;
 import com.tencent.service.IServiceRequest;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.io.xml.XmlFriendlyNameCoder;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ConnectTimeoutException;
@@ -23,6 +25,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.net.SocketTimeoutException;
 import java.security.*;
 import java.security.cert.CertificateException;
@@ -103,13 +106,9 @@ public class HttpsRequest implements IServiceRequest{
      * @param url    API地址
      * @param xmlObj 要提交的XML数据对象
      * @return API回包的实际数据
-     * @throws IOException
-     * @throws KeyStoreException
-     * @throws UnrecoverableKeyException
-     * @throws NoSuchAlgorithmException
-     * @throws KeyManagementException
+     * @throws Exception 
      */
-    public String sendPost(String url, Object xmlObj) throws IOException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyManagementException {
+    public String sendPost(String url, Object xmlObj) throws Exception {
         return sendPost(url, xmlObj, false);
     }
     
@@ -120,16 +119,19 @@ public class HttpsRequest implements IServiceRequest{
      * @param xmlObj 要提交的XML数据对象
      * @param useAlias 是否使用别名来生成XML
      * @return API回包的实际数据
-     * @throws IOException
-     * @throws KeyStoreException
-     * @throws UnrecoverableKeyException
-     * @throws NoSuchAlgorithmException
-     * @throws KeyManagementException
+     * @throws Exception 
      */
-    public String sendPost(String url, Object xmlObj, boolean useAlias) throws IOException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyManagementException {
+    public String sendPost(String url, Object xmlObj, boolean useAlias) throws Exception {
 
-        if (!hasInit) {
-            init();
+        PayAccount account = getPayAccountFromObj(xmlObj);
+        
+        if (account != null) {
+            httpClient = (CloseableHttpClient) HttpClientCache.getClient(account);
+        } else {
+            
+            if (!hasInit) {
+                init();
+            }
         }
 
         String result = null;
@@ -140,6 +142,8 @@ public class HttpsRequest implements IServiceRequest{
         XStream xStreamForRequestPostData = new XStream(new DomDriver("UTF-8", new XmlFriendlyNameCoder("-_", "_")));
         if (useAlias) {
             xStreamForRequestPostData.processAnnotations(xmlObj.getClass());
+        } else {
+            xStreamForRequestPostData.omitField(xmlObj.getClass(), "account");
         }
         //将要提交给API的数据对象转换成XML格式数据Post给API
         String postDataXML = xStreamForRequestPostData.toXML(xmlObj);
@@ -181,6 +185,22 @@ public class HttpsRequest implements IServiceRequest{
         }
 
         return result;
+    }
+    
+    private PayAccount getPayAccountFromObj(Object obj) {
+        Field[] fieldList = obj.getClass().getDeclaredFields();
+        for (Field f: fieldList) {
+            if (f.getType() == PayAccount.class) {
+                try {
+                    return (PayAccount) f.get(obj);
+                } catch (IllegalArgumentException | IllegalAccessException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+        }
+        
+        return null;
     }
 
     /**
