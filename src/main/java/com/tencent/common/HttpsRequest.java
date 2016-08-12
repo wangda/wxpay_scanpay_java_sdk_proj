@@ -62,7 +62,7 @@ public class HttpsRequest implements IServiceRequest{
     private CloseableHttpClient httpClient;
 
     public HttpsRequest() throws UnrecoverableKeyException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        init();
+        //init();
     }
 
     private void init() throws IOException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyManagementException {
@@ -192,6 +192,9 @@ public class HttpsRequest implements IServiceRequest{
         for (Field f: fieldList) {
             if (f.getType() == PayAccount.class) {
                 try {
+                    if (!f.isAccessible()) {
+                        f.setAccessible(true);
+                    }
                     return (PayAccount) f.get(obj);
                 } catch (IllegalArgumentException | IllegalAccessException e) {
                     e.printStackTrace();

@@ -63,7 +63,7 @@ public class QueryOpenIdReqData {
         setNonce_str(RandomStringGenerator.getRandomStringByLength(32));
 
         //根据API给的签名规则进行签名
-        String sign = Signature.getSign(Util.toMap(this));
+        String sign = Signature.getSign(Util.toMap(this), account.getKey());
         setSign(sign);//把签名数据设置到Sign这个属性中
     }
 

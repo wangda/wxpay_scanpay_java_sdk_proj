@@ -11,11 +11,6 @@ import com.tencent.common.PayAccount;
 import com.tencent.common.RandomStringGenerator;
 import com.tencent.common.Signature;
 import com.tencent.common.Util;
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
-
-import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * 请求被扫支付API需要提交的数据
@@ -152,7 +147,7 @@ public class ScanPayReqData {
         setNonce_str(RandomStringGenerator.getRandomStringByLength(32));
 
         //根据API给的签名规则进行签名
-        String sign = Signature.getSign(Util.toMap(this));
+        String sign = Signature.getSign(Util.toMap(this), account.getKey());
         setSign(sign);//把签名数据设置到Sign这个属性中
 
     }

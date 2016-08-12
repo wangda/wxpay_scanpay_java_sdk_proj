@@ -25,12 +25,20 @@ import com.tencent.common.Configure;
 import com.tencent.common.PayAccount;
 
 /**
+ * 使用HttpClient进行支付的Http连接连接池<p>
+ * 该池子中保存了所有微信支付业主的Http连接对象。可以直接使用这个连接对象发送HTTP请求，而不用每次都重新实例化
  * 
  * @author wangda
  */
 public class HttpClientCache {
     private static Map<String, HttpClient> clientMap = new HashMap<>(32);
     
+    /**
+     * 根据支付账号，返回该支付账户的连接
+     * @param account
+     * @return
+     * @throws Exception
+     */
     public static HttpClient getClient(PayAccount account) throws Exception {
         String key = account.getMchId() + "_" + account.getSubMchId();
         HttpClient client = clientMap.get(key);
@@ -42,13 +50,13 @@ public class HttpClientCache {
         if (account.getCert() != null) {
             instream = account.getCertInputStream();
         } else {
-            instream = new FileInputStream(new File(Configure.getCertLocalPath()));//加载本地的证书进行https加密传输
+            instream = new FileInputStream(new File(account.getCertLocalPath()));//加载本地的证书进行https加密传输
         }
         
         // 重新生成一个client
         KeyStore keyStore = KeyStore.getInstance("PKCS12");
         try {
-            keyStore.load(instream, Configure.getCertPassword().toCharArray());//设置证书密码
+            keyStore.load(instream, account.getCertPassword().toCharArray());//设置证书密码
         } catch (CertificateException e) {
             e.printStackTrace();
         } catch (NoSuchAlgorithmException e) {
@@ -59,7 +67,7 @@ public class HttpClientCache {
 
         // Trust own CA and all self-signed certs
         SSLContext sslcontext = SSLContexts.custom()
-                .loadKeyMaterial(keyStore, Configure.getCertPassword().toCharArray())
+                .loadKeyMaterial(keyStore, account.getCertPassword().toCharArray())
                 .build();
         // Allow TLSv1 protocol only
         SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(

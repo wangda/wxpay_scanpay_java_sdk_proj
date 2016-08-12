@@ -144,6 +144,11 @@ public class Util {
                     continue;
                 }
                 
+                // 只有基本数据类型才转到Map中
+                if (!BasicType.isBasicType(o.getClass())) {
+                    continue;
+                }
+                
                 XStreamAlias alias = field.getDeclaredAnnotation(XStreamAlias.class);
                 if (alias == null) {
                     map.put(field.getName(), o);
