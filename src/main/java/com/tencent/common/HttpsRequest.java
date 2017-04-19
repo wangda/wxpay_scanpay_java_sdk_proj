@@ -5,6 +5,9 @@ import com.tencent.service.IServiceRequest;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.io.xml.XmlFriendlyNameCoder;
+
+import cn.trawe.tencent.contst.ValidCertSwitch;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -14,6 +17,7 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLContexts;
+import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -29,6 +33,7 @@ import java.lang.reflect.Field;
 import java.net.SocketTimeoutException;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
 /**
  * User: rizenguo
@@ -63,6 +68,7 @@ public class HttpsRequest implements IServiceRequest{
 
     public HttpsRequest() throws UnrecoverableKeyException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
         //init();
+        //根据默认超时限制初始化requestConfig
     }
 
     private void init() throws IOException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyManagementException {
@@ -78,11 +84,26 @@ public class HttpsRequest implements IServiceRequest{
         } finally {
             instream.close();
         }
-
+        SSLContext sslcontext = null;
         // Trust own CA and all self-signed certs
-        SSLContext sslcontext = SSLContexts.custom()
-                .loadKeyMaterial(keyStore, Configure.getCertPassword().toCharArray())
-                .build();
+        if(ValidCertSwitch.isValidCert) {
+            //访问微信
+            sslcontext = SSLContexts.custom()
+                    .loadKeyMaterial(keyStore, Configure.getCertPassword().toCharArray())
+                    .build();
+        } else{
+            //访问模拟器
+            sslcontext = SSLContexts.custom()
+                    .loadTrustMaterial(null, new TrustStrategy() {
+                        
+                        @Override
+                        public boolean isTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+                            return true;
+                        }
+                    })
+                    .loadKeyMaterial(keyStore, Configure.getCertPassword().toCharArray())
+                    .build();
+        }
         // Allow TLSv1 protocol only
         SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
                 sslcontext,
@@ -178,6 +199,7 @@ public class HttpsRequest implements IServiceRequest{
             log.e("http get throw SocketTimeoutException");
 
         } catch (Exception e) {
+            e.printStackTrace();
             log.e("http get throw Exception");
 
         } finally {
