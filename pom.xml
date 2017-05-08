@@ -41,6 +41,19 @@
         </pluginRepository>
     </pluginRepositories>
     -->
+    
+    <distributionManagement>  
+        <repository>  
+            <id>nexus-releases</id>  
+            <name>Local Nexus Repository</name>  
+            <url>http://192.168.3.254:8881/nexus/content/repositories/releases/</url>  
+        </repository>  
+        <snapshotRepository>  
+            <id>nexus-snapshots</id>  
+            <name>Local Nexus Repository</name>  
+            <url>http://192.168.3.254:8881/nexus/content/repositories/snapshots/</url>  
+        </snapshotRepository>  
+    </distributionManagement>  
 
     <dependencies>
         <dependency>

@@ -69,6 +69,9 @@ public class Util {
     }
 
     public static Object getObjectFromXML(String xml, Class tClass) {
+        if (xml == null || "".equals(xml)) {
+            return null;
+        }
         return getObjectFromXML(xml, tClass, false);
     }
     
@@ -114,6 +117,18 @@ public class Util {
         logger.i(log.toString());
         //System.out.println(log);
         return log.toString();
+    }
+    
+    /**
+     * 打印异常
+     * @param ex
+     */
+    public static void log(String errMsg, Exception ex) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        pw.println(errMsg);
+        ex.printStackTrace(pw);
+        log(pw.toString());
     }
 
     /**

@@ -8,8 +8,11 @@ package com.tencent.common.httpclientcache;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.security.KeyManagementException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,10 +22,11 @@ import javax.net.ssl.SSLContext;
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLContexts;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.impl.client.HttpClients;
 
-import com.tencent.common.Configure;
 import com.tencent.common.PayAccount;
+import com.tencent.common.Util;
 
 /**
  * 使用HttpClient进行支付的Http连接连接池<p>
@@ -31,7 +35,8 @@ import com.tencent.common.PayAccount;
  * @author wangda
  */
 public class HttpClientCache {
-    private static Map<String, HttpClient> clientMap = new HashMap<>(32);
+//    private static Map<String, HttpClient> clientMap = new HashMap<>(32);
+    private static Map<String, KeyStore> clientMap = new HashMap<>(32);
     
     /**
      * 根据支付账号，返回该支付账户的连接
@@ -41,46 +46,58 @@ public class HttpClientCache {
      */
     public static HttpClient getClient(PayAccount account) throws Exception {
         String key = account.getMchId() + "_" + account.getSubMchId();
-        HttpClient client = clientMap.get(key);
-        if (client != null) {
-            return client;
+//        HttpClient client = clientMap.get(key);
+        KeyStore keystore = clientMap.get(key);
+        if (keystore != null) {
+            InputStream instream = null;
+            if (account.getCert() != null) {
+                instream = account.getCertInputStream();
+            } else {
+                instream = new FileInputStream(new File(account.getCertLocalPath()));//加载本地的证书进行https加密传输
+            }
+            
+            // 重新生成一个client
+            keystore = KeyStore.getInstance("PKCS12");
+            try {
+                keystore.load(instream, account.getCertPassword().toCharArray());//设置证书密码
+            } catch (CertificateException e) {
+                e.printStackTrace();
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            } finally {
+                instream.close();
+            }
+            
+            clientMap.put(key, keystore);
         }
         
-        InputStream instream = null;
-        if (account.getCert() != null) {
-            instream = account.getCertInputStream();
-        } else {
-            instream = new FileInputStream(new File(account.getCertLocalPath()));//加载本地的证书进行https加密传输
-        }
-        
-        // 重新生成一个client
-        KeyStore keyStore = KeyStore.getInstance("PKCS12");
+        return buildHttpClient(keystore, account);
+    }
+    
+    static HttpClient buildHttpClient(KeyStore keystore, PayAccount account){
+        // Trust own CA and all self-signed certs
+        SSLContext sslcontext = null;
         try {
-            keyStore.load(instream, account.getCertPassword().toCharArray());//设置证书密码
-        } catch (CertificateException e) {
-            e.printStackTrace();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } finally {
-            instream.close();
+            sslcontext = SSLContexts.custom()
+                    .loadKeyMaterial(keystore, account.getCertPassword().toCharArray())
+                    .loadTrustMaterial(null, new TrustSelfSignedStrategy())
+                    .build();
+        } catch (KeyManagementException | UnrecoverableKeyException | NoSuchAlgorithmException | KeyStoreException e) {
+            Util.log(e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
         }
 
-        // Trust own CA and all self-signed certs
-        SSLContext sslcontext = SSLContexts.custom()
-                .loadKeyMaterial(keyStore, account.getCertPassword().toCharArray())
-                .build();
         // Allow TLSv1 protocol only
         SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
                 sslcontext,
                 new String[]{"TLSv1"},
                 null,
+                // SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
                 SSLConnectionSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
 
-        client = HttpClients.custom()
+        HttpClient client = HttpClients.custom()
                 .setSSLSocketFactory(sslsf)
                 .build();
-        clientMap.put(key, client);
-        
         return client;
     }
 }
