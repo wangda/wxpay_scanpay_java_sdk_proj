@@ -1,5 +1,6 @@
 package com.tencent.common;
 
+
 import com.tencent.common.httpclientcache.HttpClientCache;
 import com.tencent.service.IServiceRequest;
 import com.thoughtworks.xstream.XStream;
@@ -8,9 +9,23 @@ import com.thoughtworks.xstream.io.xml.XmlFriendlyNameCoder;
 
 import cn.trawe.tencent.contst.ValidCertSwitch;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.net.SocketTimeoutException;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+
+import javax.net.ssl.SSLContext;
+
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ConnectTimeoutException;
@@ -24,6 +39,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.LoggerFactory;
 
+
 import javax.net.ssl.SSLContext;
 import java.io.File;
 import java.io.FileInputStream;
@@ -34,6 +50,13 @@ import java.net.SocketTimeoutException;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+
+import com.tencent.common.httpclientcache.HttpClientCache;
+import com.tencent.service.IServiceRequest;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.DomDriver;
+import com.thoughtworks.xstream.io.xml.XmlFriendlyNameCoder;
+
 
 /**
  * User: rizenguo
@@ -68,7 +91,11 @@ public class HttpsRequest implements IServiceRequest{
 
     public HttpsRequest() throws UnrecoverableKeyException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
         //init();
+
         //根据默认超时限制初始化requestConfig
+
+        requestConfig = RequestConfig.custom().setSocketTimeout(socketTimeout).setConnectTimeout(connectTimeout).build();
+
     }
 
     private void init() throws IOException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyManagementException {
@@ -155,6 +182,10 @@ public class HttpsRequest implements IServiceRequest{
             }
         }
 
+        if (requestConfig==null) {
+            requestConfig = RequestConfig.custom().setSocketTimeout(socketTimeout).setConnectTimeout(connectTimeout).build();
+        }
+        
         String result = null;
 
         HttpPost httpPost = new HttpPost(url);
@@ -188,6 +219,7 @@ public class HttpsRequest implements IServiceRequest{
             HttpEntity entity = response.getEntity();
 
             result = EntityUtils.toString(entity, "UTF-8");
+            Util.log("收到响应：" + result);
 
         } catch (ConnectionPoolTimeoutException e) {
             log.e("http get throw ConnectionPoolTimeoutException(wait time out)");

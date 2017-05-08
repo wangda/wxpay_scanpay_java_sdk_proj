@@ -9,8 +9,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.KeyManagementException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
@@ -25,14 +28,18 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLContexts;
+<<<<<<< HEAD
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+
 import org.apache.http.impl.client.HttpClients;
 
 import com.tencent.common.PayAccount;
-import com.tencent.common.Util;
+
 
 import cn.trawe.tencent.contst.ValidCertSwitch;
+
 
 /**
  * 使用HttpClient进行支付的Http连接连接池<p>
@@ -41,7 +48,8 @@ import cn.trawe.tencent.contst.ValidCertSwitch;
  * @author wangda
  */
 public class HttpClientCache {
-    private static Map<String, HttpClient> clientMap = new HashMap<>(32);
+//    private static Map<String, HttpClient> clientMap = new HashMap<>(32);
+    private static Map<String, KeyStore> clientMap = new HashMap<>(32);
     
     /**
      * 根据支付账号，返回该支付账户的连接
@@ -51,31 +59,45 @@ public class HttpClientCache {
      */
     public static HttpClient getClient(PayAccount account) throws Exception {
         String key = account.getMchId() + "_" + account.getSubMchId();
+
         HttpClient client = null;
         Util.log("使用新的client");
 /*        HttpClient client = clientMap.get(key);
         if (client != null) {
             return client;
         }*/
-        
-        InputStream instream = null;
-        if (account.getCert() != null) {
-            instream = account.getCertInputStream();
-        } else {
-            instream = new FileInputStream(new File(account.getCertLocalPath()));//加载本地的证书进行https加密传输
+
+//        HttpClient client = clientMap.get(key);
+        KeyStore keystore = clientMap.get(key);
+        if (keystore != null) {
+            InputStream instream = null;
+            if (account.getCert() != null) {
+                instream = account.getCertInputStream();
+            } else {
+                instream = new FileInputStream(new File(account.getCertLocalPath()));//加载本地的证书进行https加密传输
+            }
+            
+            // 重新生成一个client
+            keystore = KeyStore.getInstance("PKCS12");
+            try {
+                keystore.load(instream, account.getCertPassword().toCharArray());//设置证书密码
+            } catch (CertificateException e) {
+                e.printStackTrace();
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            } finally {
+                instream.close();
+            }
+            
+            clientMap.put(key, keystore);
         }
+
         
-        // 重新生成一个client
-        KeyStore keyStore = KeyStore.getInstance("PKCS12");
-        try {
-            keyStore.load(instream, account.getCertPassword().toCharArray());//设置证书密码
-        } catch (CertificateException e) {
-            e.printStackTrace();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } finally {
-            instream.close();
-        }
+        return buildHttpClient(keystore, account);
+    }
+    
+    static HttpClient buildHttpClient(KeyStore keystore, PayAccount account){
+
         SSLContext sslcontext = null;
         SSLConnectionSocketFactory sslsf = null;
         if(ValidCertSwitch.isValidCert){
@@ -124,12 +146,11 @@ public class HttpClientCache {
                         }
                     });
         }
-        
-        client = HttpClients.custom()
+
+        HttpClient client = HttpClients.custom()
                 .setSSLSocketFactory(sslsf)
                 .build();
-        //clientMap.put(key, client);
-        
+
         return client;
     }
 }
