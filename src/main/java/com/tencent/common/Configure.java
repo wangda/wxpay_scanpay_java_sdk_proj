@@ -83,7 +83,7 @@ public class Configure {
 		Configure.useThreadToDoReport = useThreadToDoReport;
 	}
 
-	public static String HttpsRequestClassName = "com.tencent.common.OkHttpsRequest";
+	public static String HttpsRequestClassName = "com.tencent.common.HttpsRequest";
 
 	public static void setKey(String key) {
 		Configure.key = key;

@@ -25,18 +25,14 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLContexts;
-<<<<<<< HEAD
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
-
 import org.apache.http.impl.client.HttpClients;
 
 import com.tencent.common.PayAccount;
-
+import com.tencent.common.Util;
 
 import cn.trawe.tencent.contst.ValidCertSwitch;
 
@@ -96,15 +92,18 @@ public class HttpClientCache {
         return buildHttpClient(keystore, account);
     }
     
-    static HttpClient buildHttpClient(KeyStore keystore, PayAccount account){
-
+    static HttpClient buildHttpClient(KeyStore keystore, PayAccount account) throws KeyManagementException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException{
+        try {
+            
+        } catch (Exception e) {
+        }
         SSLContext sslcontext = null;
         SSLConnectionSocketFactory sslsf = null;
         if(ValidCertSwitch.isValidCert){
             //访问微信
             // Trust own CA and all self-signed certs
             sslcontext = SSLContexts.custom()
-                    .loadKeyMaterial(keyStore, account.getCertPassword().toCharArray())
+                    .loadKeyMaterial(keystore, account.getCertPassword().toCharArray())
                     .build();
             // Allow TLSv1 protocol only
             sslsf = new SSLConnectionSocketFactory(
@@ -123,7 +122,7 @@ public class HttpClientCache {
                             return true;
                         }
                     })
-                    .loadKeyMaterial(keyStore, account.getCertPassword().toCharArray())
+                    .loadKeyMaterial(keystore, account.getCertPassword().toCharArray())
                     .build();
             // Allow TLSv1 protocol only
             sslsf = new SSLConnectionSocketFactory(

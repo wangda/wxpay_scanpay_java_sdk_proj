@@ -1,14 +1,6 @@
 package com.tencent.common;
 
 
-import com.tencent.common.httpclientcache.HttpClientCache;
-import com.tencent.service.IServiceRequest;
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.xml.DomDriver;
-import com.thoughtworks.xstream.io.xml.XmlFriendlyNameCoder;
-
-import cn.trawe.tencent.contst.ValidCertSwitch;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -20,9 +12,9 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
 import javax.net.ssl.SSLContext;
-
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -39,23 +31,13 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.LoggerFactory;
 
-
-import javax.net.ssl.SSLContext;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Field;
-import java.net.SocketTimeoutException;
-import java.security.*;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-
 import com.tencent.common.httpclientcache.HttpClientCache;
 import com.tencent.service.IServiceRequest;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.io.xml.XmlFriendlyNameCoder;
+
+import cn.trawe.tencent.contst.ValidCertSwitch;
 
 
 /**
@@ -78,10 +60,10 @@ public class HttpsRequest implements IServiceRequest{
     private boolean hasInit = false;
 
     //连接超时时间，默认10秒
-    private int socketTimeout = 10000;
+    private int socketTimeout = 30000;
 
-    //传输超时时间，默认30秒
-    private int connectTimeout = 30000;
+    //链接超时时间
+    private int connectTimeout = 5000;
 
     //请求器的配置
     private RequestConfig requestConfig;
