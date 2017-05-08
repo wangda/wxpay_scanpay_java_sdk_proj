@@ -1,5 +1,6 @@
 package com.tencent.common;
 
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -11,6 +12,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
 import javax.net.ssl.SSLContext;
 
@@ -22,6 +24,7 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLContexts;
+import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -33,6 +36,9 @@ import com.tencent.service.IServiceRequest;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.io.xml.XmlFriendlyNameCoder;
+
+import cn.trawe.tencent.contst.ValidCertSwitch;
+
 
 /**
  * User: rizenguo
@@ -54,10 +60,10 @@ public class HttpsRequest implements IServiceRequest{
     private boolean hasInit = false;
 
     //连接超时时间，默认10秒
-    private int socketTimeout = 10000;
+    private int socketTimeout = 30000;
 
-    //传输超时时间，默认30秒
-    private int connectTimeout = 30000;
+    //链接超时时间
+    private int connectTimeout = 5000;
 
     //请求器的配置
     private RequestConfig requestConfig;
@@ -67,7 +73,11 @@ public class HttpsRequest implements IServiceRequest{
 
     public HttpsRequest() throws UnrecoverableKeyException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
         //init();
+
+        //根据默认超时限制初始化requestConfig
+
         requestConfig = RequestConfig.custom().setSocketTimeout(socketTimeout).setConnectTimeout(connectTimeout).build();
+
     }
 
     private void init() throws IOException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyManagementException {
@@ -83,11 +93,26 @@ public class HttpsRequest implements IServiceRequest{
         } finally {
             instream.close();
         }
-
+        SSLContext sslcontext = null;
         // Trust own CA and all self-signed certs
-        SSLContext sslcontext = SSLContexts.custom()
-                .loadKeyMaterial(keyStore, Configure.getCertPassword().toCharArray())
-                .build();
+        if(ValidCertSwitch.isValidCert) {
+            //访问微信
+            sslcontext = SSLContexts.custom()
+                    .loadKeyMaterial(keyStore, Configure.getCertPassword().toCharArray())
+                    .build();
+        } else{
+            //访问模拟器
+            sslcontext = SSLContexts.custom()
+                    .loadTrustMaterial(null, new TrustStrategy() {
+                        
+                        @Override
+                        public boolean isTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+                            return true;
+                        }
+                    })
+                    .loadKeyMaterial(keyStore, Configure.getCertPassword().toCharArray())
+                    .build();
+        }
         // Allow TLSv1 protocol only
         SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
                 sslcontext,

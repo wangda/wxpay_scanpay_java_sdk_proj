@@ -8,13 +8,17 @@ package com.tencent.common;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cn.trawe.tencent.contst.ValidCertSwitch;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -31,7 +35,7 @@ public class Https {
     private int readTimeout = 20;    // 接收数据超时 20 秒
     private static Https https;
     private OkHttpClient client;
-    public static Https instance() {
+    public static Https instance(PayAccount account) {
         if (https != null) {
             return https;
         }
@@ -42,32 +46,52 @@ public class Https {
             }
             
             Https temp = new Https();
-            temp.init();
+            temp.init(account);
             https = temp;
         }
         
         return https;
     }
     
-    private synchronized void init() {
+    private synchronized void init(PayAccount account) {
         try {
-            // 加载本地的证书进行https加密传输
-            FileInputStream certStream = new FileInputStream(new File(Configure.getCertLocalPath()));
-            
-            SSLSocketFactory sslSocketFactory = HttpsUtils.getSslSocketFactory(null, certStream, Configure.getCertPassword());
-            client = new OkHttpClient.Builder().sslSocketFactory(sslSocketFactory)
+
+            InputStream instream = null;
+            if (account.getCert() != null) {
+                instream = account.getCertInputStream();
+            } else {
+                instream = new FileInputStream(new File(account.getCertLocalPath()));//加载本地的证书进行https加密传输
+            }
+            SSLSocketFactory sslSocketFactory = HttpsUtils.getSslSocketFactory(null, instream, account.getCertPassword());
+            if(ValidCertSwitch.isValidCert){
+                client = new OkHttpClient.Builder().sslSocketFactory(sslSocketFactory)
                     .connectTimeout(connectTimeout, TimeUnit.SECONDS)
                     .readTimeout(readTimeout, TimeUnit.SECONDS)
                     .writeTimeout(sendTimeout, TimeUnit.SECONDS)
                     .build();
+            } else {
+                //访问模拟器
+              	client = new OkHttpClient.Builder().sslSocketFactory(sslSocketFactory)
+                    .connectTimeout(connectTimeout, TimeUnit.SECONDS)
+                    .readTimeout(readTimeout, TimeUnit.SECONDS)
+                    .writeTimeout(sendTimeout, TimeUnit.SECONDS).hostnameVerifier(new HostnameVerifier() {
+                    @Override
+                    public boolean verify(String hostname, SSLSession session) {
+                        return true;
+                    }
+                }).build();
+            }
+
+
+
         } catch (Exception ex) {
             logger.error("初始化Https对象出错:" + ex.getMessage(), ex);
         }
     }
     
-    public String post(String url, String content) {
+    public String post(String url, String content,PayAccount account) {
         if (client == null) {
-            init();
+            init(account);
         }
         
         long start = System.currentTimeMillis();
@@ -116,8 +140,8 @@ public class Https {
         
         Configure.setCertLocalPath("D:\\data\\test-cert\\apiclient_cert.p12");
         Configure.setCertPassword("");
-        String s = Https.instance().post("https://api.mch.weixin.qq.com/pay/micropay", postXML);
-        s = Https.instance().post("https://api.mch.weixin.qq.com/pay/micropay", postXML);
-        System.out.println(s);
+        //String s = Https.instance().post("https://api.mch.weixin.qq.com/pay/micropay", postXML);
+        //s = Https.instance().post("https://api.mch.weixin.qq.com/pay/micropay", postXML);
+        //System.out.println(s);
     }
 }
