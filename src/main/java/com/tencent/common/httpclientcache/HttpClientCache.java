@@ -30,6 +30,7 @@ import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.impl.client.HttpClients;
 
 import com.tencent.common.PayAccount;
+import com.tencent.common.Util;
 
 import cn.trawe.tencent.contst.ValidCertSwitch;
 
@@ -50,10 +51,12 @@ public class HttpClientCache {
      */
     public static HttpClient getClient(PayAccount account) throws Exception {
         String key = account.getMchId() + "_" + account.getSubMchId();
-        HttpClient client = clientMap.get(key);
+        HttpClient client = null;
+        Util.log("使用新的client");
+/*        HttpClient client = clientMap.get(key);
         if (client != null) {
             return client;
-        }
+        }*/
         
         InputStream instream = null;
         if (account.getCert() != null) {
@@ -125,7 +128,7 @@ public class HttpClientCache {
         client = HttpClients.custom()
                 .setSSLSocketFactory(sslsf)
                 .build();
-        clientMap.put(key, client);
+        //clientMap.put(key, client);
         
         return client;
     }

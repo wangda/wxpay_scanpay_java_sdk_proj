@@ -15,7 +15,7 @@ import com.tencent.protocol.mmpaymkttransfers.SendRedpackRespData;
 
 public class RedpackServiceTest {
 
-    @Test
+    //@Test
     public void testRequest() {
         Configure.setAppID("");
         Configure.setMchID("");

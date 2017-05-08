@@ -10,7 +10,7 @@ import com.tencent.protocol.mmpaymkttransfers.QueryRedpackRespData;
 
 public class QueryRedpackServiceTest {
 
-    @Test
+    //@Test
     public void testRequest() {
         Configure.setAppID("wxa01703df65b96e65");
         Configure.setMchID("1285030101");
