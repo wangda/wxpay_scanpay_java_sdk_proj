@@ -25,16 +25,8 @@ public class ReportRunable implements Runnable {
     public void run() {
         try {
             reportService.request();
-        } catch (UnrecoverableKeyException e) {
+        } catch (Exception e) {
             e.printStackTrace();
-        } catch (KeyManagementException e) {
-            e.printStackTrace();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (KeyStoreException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        } 
     }
 }

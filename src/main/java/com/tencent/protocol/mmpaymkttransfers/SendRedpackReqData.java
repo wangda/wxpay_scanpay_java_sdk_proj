@@ -6,10 +6,12 @@
 package com.tencent.protocol.mmpaymkttransfers;
 
 import com.tencent.common.Configure;
+import com.tencent.common.PayAccount;
 import com.tencent.common.RandomStringGenerator;
 import com.tencent.common.Signature;
 import com.tencent.common.Util;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
 /**
  * 企业发红包请求对象
@@ -69,6 +71,9 @@ public class SendRedpackReqData {
     /** 备注信息 */
     @XStreamAlias("remark")
     private String remark = "";
+    
+    @XStreamOmitField
+    private PayAccount account;
 
     /**
      * 
@@ -104,6 +109,33 @@ public class SendRedpackReqData {
         this.nonceStr = RandomStringGenerator.getRandomStringByLength(32);
         this.mchid = Configure.getMchid();
         this.appid = Configure.getAppid();
+        String sign = Signature.getSign(Util.toMap(this));
+        this.sign = sign;
+    }
+    
+    public SendRedpackReqData(PayAccount account, String mchBillno,
+            String sendName, 
+            String reOpenid, 
+            int totalAmount, 
+            int totalNum, 
+            String wishing, 
+            String clientIp,
+            String actName, 
+            String remark) {
+        this.account = account;
+        this.mchBillno = mchBillno;
+        this.sendName = sendName;
+        this.reOpenid = reOpenid;
+        this.totalAmount = totalAmount;
+        this.totalNum = totalNum;
+        this.wishing = wishing;
+        this.clientIp = clientIp;
+        this.actName = actName;
+        this.remark = remark;
+        
+        this.nonceStr = RandomStringGenerator.getRandomStringByLength(32);
+        this.mchid = account.getMchId();
+        this.appid = account.getAppId();
         String sign = Signature.getSign(Util.toMap(this));
         this.sign = sign;
     }
@@ -210,6 +242,14 @@ public class SendRedpackReqData {
 
     public void setRemark(String remark) {
         this.remark = remark;
+    }
+
+    public PayAccount getAccount() {
+        return account;
+    }
+
+    public void setAccount(PayAccount account) {
+        this.account = account;
     }
 
 }

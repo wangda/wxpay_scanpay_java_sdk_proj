@@ -69,32 +69,5 @@ public class RefundOrderData {
         this.refundStatus = refundStatus;
     }
 
-    public String toMap(){
-        Map<String,Object> map = new LinkedHashMap<String, Object>();
-        Field[] fields = this.getClass().getDeclaredFields();
-        StringBuilder s=new StringBuilder("{");
-        
-        for (Field field : fields) {
-            Object obj;
-            try {
-                obj = field.get(this);
-                if(obj!=null){
-                	if(s.length()>0){
-                		s.append(" ");
-                	}
-                	s.append(field.getName());
-                	s.append("=");
-                	s.append(obj.toString());
-//                    map.put(field.getName(), obj);
-                }
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        }
-        s.append("}");
-        return s.toString();
-    }
 
 }

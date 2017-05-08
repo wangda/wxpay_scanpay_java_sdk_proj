@@ -69,6 +69,9 @@ public class Util {
     }
 
     public static Object getObjectFromXML(String xml, Class tClass) {
+        if (xml == null || "".equals(xml)) {
+            return null;
+        }
         return getObjectFromXML(xml, tClass, false);
     }
     
@@ -115,6 +118,18 @@ public class Util {
         //System.out.println(log);
         return log.toString();
     }
+    
+    /**
+     * 打印异常
+     * @param ex
+     */
+    public static void log(String errMsg, Exception ex) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        pw.println(errMsg);
+        ex.printStackTrace(pw);
+        log(pw.toString());
+    }
 
     /**
      * 读取本地的xml数据，一般用来自测用
@@ -141,6 +156,11 @@ public class Util {
                 }
                 o = field.get(obj);
                 if (o == null) {
+                    continue;
+                }
+                
+                // 只有基本数据类型才转到Map中
+                if (!BasicType.isBasicType(o.getClass())) {
                     continue;
                 }
                 

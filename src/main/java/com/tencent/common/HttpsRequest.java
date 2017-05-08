@@ -1,9 +1,19 @@
 package com.tencent.common;
 
-import com.tencent.service.IServiceRequest;
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.xml.DomDriver;
-import com.thoughtworks.xstream.io.xml.XmlFriendlyNameCoder;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.net.SocketTimeoutException;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+
+import javax.net.ssl.SSLContext;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
@@ -18,14 +28,11 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.LoggerFactory;
 
-import javax.net.ssl.SSLContext;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.SocketTimeoutException;
-import java.security.*;
-import java.security.cert.CertificateException;
+import com.tencent.common.httpclientcache.HttpClientCache;
+import com.tencent.service.IServiceRequest;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.DomDriver;
+import com.thoughtworks.xstream.io.xml.XmlFriendlyNameCoder;
 
 /**
  * User: rizenguo
@@ -59,7 +66,8 @@ public class HttpsRequest implements IServiceRequest{
     private CloseableHttpClient httpClient;
 
     public HttpsRequest() throws UnrecoverableKeyException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        init();
+        //init();
+        requestConfig = RequestConfig.custom().setSocketTimeout(socketTimeout).setConnectTimeout(connectTimeout).build();
     }
 
     private void init() throws IOException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyManagementException {
@@ -103,13 +111,9 @@ public class HttpsRequest implements IServiceRequest{
      * @param url    API地址
      * @param xmlObj 要提交的XML数据对象
      * @return API回包的实际数据
-     * @throws IOException
-     * @throws KeyStoreException
-     * @throws UnrecoverableKeyException
-     * @throws NoSuchAlgorithmException
-     * @throws KeyManagementException
+     * @throws Exception 
      */
-    public String sendPost(String url, Object xmlObj) throws IOException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyManagementException {
+    public String sendPost(String url, Object xmlObj) throws Exception {
         return sendPost(url, xmlObj, false);
     }
     
@@ -120,18 +124,25 @@ public class HttpsRequest implements IServiceRequest{
      * @param xmlObj 要提交的XML数据对象
      * @param useAlias 是否使用别名来生成XML
      * @return API回包的实际数据
-     * @throws IOException
-     * @throws KeyStoreException
-     * @throws UnrecoverableKeyException
-     * @throws NoSuchAlgorithmException
-     * @throws KeyManagementException
+     * @throws Exception 
      */
-    public String sendPost(String url, Object xmlObj, boolean useAlias) throws IOException, KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyManagementException {
+    public String sendPost(String url, Object xmlObj, boolean useAlias) throws Exception {
 
-        if (!hasInit) {
-            init();
+        PayAccount account = getPayAccountFromObj(xmlObj);
+        
+        if (account != null) {
+            httpClient = (CloseableHttpClient) HttpClientCache.getClient(account);
+        } else {
+            
+            if (!hasInit) {
+                init();
+            }
         }
 
+        if (requestConfig==null) {
+            requestConfig = RequestConfig.custom().setSocketTimeout(socketTimeout).setConnectTimeout(connectTimeout).build();
+        }
+        
         String result = null;
 
         HttpPost httpPost = new HttpPost(url);
@@ -140,6 +151,8 @@ public class HttpsRequest implements IServiceRequest{
         XStream xStreamForRequestPostData = new XStream(new DomDriver("UTF-8", new XmlFriendlyNameCoder("-_", "_")));
         if (useAlias) {
             xStreamForRequestPostData.processAnnotations(xmlObj.getClass());
+        } else {
+            xStreamForRequestPostData.omitField(xmlObj.getClass(), "account");
         }
         //将要提交给API的数据对象转换成XML格式数据Post给API
         String postDataXML = xStreamForRequestPostData.toXML(xmlObj);
@@ -163,6 +176,7 @@ public class HttpsRequest implements IServiceRequest{
             HttpEntity entity = response.getEntity();
 
             result = EntityUtils.toString(entity, "UTF-8");
+            Util.log("收到响应：" + result);
 
         } catch (ConnectionPoolTimeoutException e) {
             log.e("http get throw ConnectionPoolTimeoutException(wait time out)");
@@ -174,6 +188,7 @@ public class HttpsRequest implements IServiceRequest{
             log.e("http get throw SocketTimeoutException");
 
         } catch (Exception e) {
+            e.printStackTrace();
             log.e("http get throw Exception");
 
         } finally {
@@ -181,6 +196,25 @@ public class HttpsRequest implements IServiceRequest{
         }
 
         return result;
+    }
+    
+    private PayAccount getPayAccountFromObj(Object obj) {
+        Field[] fieldList = obj.getClass().getDeclaredFields();
+        for (Field f: fieldList) {
+            if (f.getType() == PayAccount.class) {
+                try {
+                    if (!f.isAccessible()) {
+                        f.setAccessible(true);
+                    }
+                    return (PayAccount) f.get(obj);
+                } catch (IllegalArgumentException | IllegalAccessException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+        }
+        
+        return null;
     }
 
     /**
