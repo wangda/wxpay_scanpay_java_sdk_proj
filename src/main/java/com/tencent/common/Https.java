@@ -18,7 +18,6 @@ import javax.net.ssl.SSLSocketFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cn.trawe.tencent.contst.ValidCertSwitch;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -63,7 +62,7 @@ public class Https {
                 instream = new FileInputStream(new File(account.getCertLocalPath()));//加载本地的证书进行https加密传输
             }
             SSLSocketFactory sslSocketFactory = HttpsUtils.getSslSocketFactory(null, instream, account.getCertPassword());
-            if(ValidCertSwitch.isValidCert){
+            if(ValidCertSwitch.isValidCert()){
                 client = new OkHttpClient.Builder().sslSocketFactory(sslSocketFactory)
                     .connectTimeout(connectTimeout, TimeUnit.SECONDS)
                     .readTimeout(readTimeout, TimeUnit.SECONDS)

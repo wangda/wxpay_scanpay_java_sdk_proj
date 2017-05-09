@@ -37,7 +37,6 @@ import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import com.thoughtworks.xstream.io.xml.XmlFriendlyNameCoder;
 
-import cn.trawe.tencent.contst.ValidCertSwitch;
 
 
 /**
@@ -95,7 +94,7 @@ public class HttpsRequest implements IServiceRequest{
         }
         SSLContext sslcontext = null;
         // Trust own CA and all self-signed certs
-        if(ValidCertSwitch.isValidCert) {
+        if(ValidCertSwitch.isValidCert()) {
             //访问微信
             sslcontext = SSLContexts.custom()
                     .loadKeyMaterial(keyStore, Configure.getCertPassword().toCharArray())

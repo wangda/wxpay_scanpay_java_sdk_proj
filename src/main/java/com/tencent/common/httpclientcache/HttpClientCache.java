@@ -33,8 +33,8 @@ import org.apache.http.impl.client.HttpClients;
 
 import com.tencent.common.PayAccount;
 import com.tencent.common.Util;
+import com.tencent.common.ValidCertSwitch;
 
-import cn.trawe.tencent.contst.ValidCertSwitch;
 
 
 /**
@@ -99,7 +99,7 @@ public class HttpClientCache {
         }
         SSLContext sslcontext = null;
         SSLConnectionSocketFactory sslsf = null;
-        if(ValidCertSwitch.isValidCert){
+        if(ValidCertSwitch.isValidCert()){
             //访问微信
             // Trust own CA and all self-signed certs
             sslcontext = SSLContexts.custom()
