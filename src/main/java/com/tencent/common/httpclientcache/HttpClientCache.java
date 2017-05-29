@@ -31,6 +31,7 @@ import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.impl.client.HttpClients;
 
+import com.tencent.common.Log;
 import com.tencent.common.PayAccount;
 import com.tencent.common.Util;
 import com.tencent.common.ValidCertSwitch;
@@ -65,7 +66,7 @@ public class HttpClientCache {
 
 //        HttpClient client = clientMap.get(key);
         KeyStore keystore = clientMap.get(key);
-        if (keystore != null) {
+        if (keystore == null) {
             InputStream instream = null;
             if (account.getCert() != null) {
                 instream = account.getCertInputStream();
@@ -100,6 +101,7 @@ public class HttpClientCache {
         SSLContext sslcontext = null;
         SSLConnectionSocketFactory sslsf = null;
         if(ValidCertSwitch.isValidCert()){
+            Util.log("非测试环境，使用证书访问");
             //访问微信
             // Trust own CA and all self-signed certs
             sslcontext = SSLContexts.custom()

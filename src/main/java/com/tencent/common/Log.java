@@ -42,6 +42,10 @@ public class Log {
     public void e(String s){
         logger.error(s);
     }
+    
+    public void e(String s, Exception ex){
+        logger.error(s, ex);
+    }
 
     public void log(String type,String s){
         if(type.equals(Log.LOG_TYPE_TRACE)){

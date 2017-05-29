@@ -212,9 +212,7 @@ public class HttpsRequest implements IServiceRequest{
             log.e("http get throw SocketTimeoutException");
 
         } catch (Exception e) {
-            e.printStackTrace();
-            log.e("http get throw Exception");
-
+            log.e("http get throw Exception" + e.toString(), e);
         } finally {
             httpPost.abort();
         }
